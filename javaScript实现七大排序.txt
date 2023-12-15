@@ -1,0 +1,175 @@
+
+function BubbleSort(arr){//冒泡排序
+    for(let i = 0; i < arr.length - 1; i++){//最后一轮不用进行了，因为怎么都是最小的了
+        let flag = false;//设定一个标记
+        for(let j = 1; j < arr.length - i; j++){//排好的就不要进行了
+            if(arr[j] <= arr[j-1]){
+                let temp = arr[j];
+                arr[j] = arr[j-1];
+                arr[j-1] = temp;
+                flag = true;//发生了排序就设定为true
+            }
+        } 
+        if(flag == false)break;//没有发生排序就说明已经排好了，直接break
+    }
+}
+//-----------------------------------------
+function BinarySearch(arr, left, right, target){//二分搜索
+    let mid;
+    while (left <= right) {
+        mid = Math.floor((left + right) / 2);//这里不取下整就变成了浮点数，与其他语言不同
+        if(target == arr[mid]) return mid + 1;   //如果插入元素跟中间元素相等，直接返回后一位
+        else if (target < arr[mid])  //如果大于待插入元素，说明插入位置肯定在左边
+            right = mid - 1;   //范围划到左边
+        else
+            left = mid + 1;   //范围划到右边
+    }
+    return left;   //不断划分范围，left也就是待插入位置了
+}
+
+function InsertSortPro(arr, size){//插入排序
+    for (let i = 1; i < size; ++i) {
+        let tmp = arr[i];
+        let j = BinarySearch(arr, 0, i - 1, tmp);   //由二分搜索来确定插入位置
+        for (let k = i; k > j; k--) arr[k] = arr[k - 1];   //依然是将后面的元素后移
+        arr[j] = tmp;
+    }
+}
+//---------------------------------------
+function Quick(arr, left, right){//快排  left，right为数组左右两端元素下标
+    if(left >= right) return;//左指针大于等于右指针就结束
+    let base = arr[left], l = left, r =right;//确定好基准元素为数组开头元素和左右指针
+    while(l < r){
+        while(l < r && arr[r] >= base) r--;//找右边小于基准元素的位置
+        arr[l] = arr[r];//左指针指的值被右指针指的值覆盖
+        while(l < r && arr[l] <= base) l++;//找左边大于基准元素的位置
+        arr[r] = arr[l];//右指针所指的值被左指针所指的值覆盖
+    }
+    arr[l] = base;//出循环后，左右指针必相遇，相遇处即为基准元素位置
+    if (left < l - 1) Quick(arr, left, l - 1); // 对左半部分进行排序(递归)
+    if (l + 1 < right) Quick(arr, l + 1, right); // 对右半部分进行排序(递归)
+}
+//---------------------------------------
+function SelectPro(arr, size){//选择排序
+    let left = 0, right = size - 1;   //相当于左端和右端都是已经排好序的，中间是待排序的，所以说范围不断缩小
+    while (left < right) {
+        let min = left, max = right;
+        for (let i = left; i <= right; i++) {
+            if (arr[i] < arr[min]) min = i;   //同时找最小的和最大的
+            if (arr[i] > arr[max]) max = i;
+        }
+
+        let tmp1 = arr[max];    //这里先把大的换到右边
+        arr[max] = arr[right];
+        arr[right] = tmp1;
+        //注意大的换到右边之后，有可能被换出来的这个就是最小的，所以说需要判断一下
+        //如果遍历完发现最小的就是当前右边排序的第一个元素
+        //此时因为已经被换出来了，所以说需要将min改到换出来的那个位置
+        if (min == right) min = max;
+
+        let tmp2 = arr[min];     //接着把小的换到左边
+        arr[min] = arr[left];
+        arr[left] = tmp2;
+
+        left++;    //这一轮完事之后，缩小范围
+        right--;
+    }
+}
+//---------------------------------------
+function Shell(arr, size){//希尔排序
+    let delta = size / 2;
+    while(delta >= 1){
+        for (let i = delta; i < size; ++i) {   //我们需要从delta开始，因为前delta个组的第一个元素默认是有序状态
+            let j = i, tmp = arr[i];   //这里依然是把待插入的先抽出来
+            while (j >= delta && arr[j - delta] > tmp) {
+                //注意这里比较需要按步长往回走，所以说是j - delta，此时j必须大于等于delta才可以，如果j - delta小于0说明前面没有元素了
+                arr[j] = arr[j - delta];
+                j -= delta;
+            }
+            arr[j] = tmp;
+        }
+        delta /= 2;    //分组插排完事之后，重新计算步长
+    }
+}
+
+//-------------------------------------------------
+function HeapSort(arr){//堆排序
+    //1.构建大顶堆
+    for(let i=arr.length/2-1;i>=0;i--){
+        //从第一个非叶子结点从下至上，从右至左调整结构
+        adjustHeap(arr,i,arr.length);
+    }
+    //2.调整堆结构+交换堆顶元素与末尾元素
+    for(let j=arr.length-1;j>0;j--){
+        swap(arr,0,j);//将堆顶元素与末尾元素进行交换
+        adjustHeap(arr,0,j);//重新对堆进行调整
+    }
+
+}
+
+/**
+ * 调整大顶堆（仅是调整过程，建立在大顶堆已构建的基础上）
+ * @param arr
+ * @param i
+ * @param length
+ */
+function adjustHeap(arr, i, length){
+    let temp = arr[i];//先取出当前元素i
+    for(let k=i*2+1;k<length;k=k*2+1){//从i结点的左子结点开始，也就是2i+1处开始
+        if(k+1<length && arr[k]<arr[k+1]){//如果左子结点小于右子结点，k指向右子结点
+            k++;
+        }
+        if(arr[k] >temp){//如果子节点大于父节点，将子节点值赋给父节点（不用进行交换）
+            arr[i] = arr[k];
+            i = k;
+        }else{
+            break;
+        }
+    }
+    arr[i] = temp;//将temp值放到最终的位置
+}
+/**
+ * 交换元素
+ * @param arr
+ * @param a
+ * @param b
+ */
+function swap(arr, a , b){
+    let temp=arr[a];
+    arr[a] = arr[b];
+    arr[b] = temp;
+}
+//-----------------------------------------------
+
+function merge(arr, tmp, left, leftEnd, right, rightEnd){
+    let i = left, size = rightEnd - left + 1;   //这里需要保存一下当前范围长度，后面使用
+    while (left <= leftEnd && right <= rightEnd) {   //如果两边都还有，那么就看哪边小，下一个就存哪一边的
+        if(arr[left] <= arr[right])   //如果左边的小，那么就将左边的存到下一个位置（这里i是从left开始的）
+            tmp[i++] = arr[left++];   //操作完后记得对i和left都进行自增
+        else
+            tmp[i++] = arr[right++];
+    }
+    while (left <= leftEnd)    //如果右边看完了，只剩左边，直接把左边的存进去
+        tmp[i++] = arr[left++];
+    while (right <= rightEnd)   //同上
+        tmp[i++] = arr[right++];
+    for (let j = 0; j < size; ++j, rightEnd--)   //全部存到暂存空间中之后，暂存空间中的内容都是有序的了，此时挨个搬回原数组中（注意只能搬运范围内的）
+        arr[rightEnd] = tmp[rightEnd];
+}
+
+function MergeSort(arr, tmp, start, end){   //要进行归并排序需要提供数组和原数组大小的辅助空间(tmp) end为length-1
+    if(start >= end) return;   //依然是使用递归，所以说如果范围太小，就不用看了
+    let mid = Math.floor((start + end) / 2);   //先找到中心位置，一会分两半
+    MergeSort(arr, tmp, start, mid);   //对左半和右半分别进行归并排序
+    MergeSort(arr, tmp, mid + 1, end);
+    merge(arr, tmp, start, mid, mid + 1, end);
+    //上面完事之后，左边和右边都是有序状态了，此时再对整个范围进行一次归并排序即可
+}
+//--------------------------------------------------
+
+let arr =[1,8,3,5,6,7,9,4]
+let arr2 = new Array(arr.length);
+MergeSort(arr, arr2, 0, arr.length - 1)
+
+for(let i = 0; i < arr.length; i++)
+console.info(arr[i])
